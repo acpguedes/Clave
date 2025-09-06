@@ -30,6 +30,7 @@ const chartCanvas  = document.getElementById('accuracyChart');
 const chartCtx     = chartCanvas.getContext('2d');
 const themeToggle  = document.getElementById('themeToggle');
 const keyMapForm   = document.getElementById('keyMapForm');
+const noteNamesChk = document.getElementById('noteNamesChk');
 
 function applyTheme(theme){
   document.body.dataset.theme = theme;
@@ -45,7 +46,9 @@ themeToggle.addEventListener('click', ()=>{
 });
 
 const staff  = new Staff(staffCanvas);
-const piano  = new Piano(keyboardRoot, { onPress: handlePress });
+const showLabels = localStorage.getItem('showNoteLabels') !== 'false';
+if (noteNamesChk) noteNamesChk.checked = showLabels;
+const piano  = new Piano(keyboardRoot, { onPress: handlePress, showLabels });
 const synth  = new Synth();
 // Exemplo de uso de amostra (coloque arquivos em public/samples)
 // synth.loadSample('samples/piano-A4.wav', 440);
@@ -55,6 +58,14 @@ if (waveSelect.value === 'sample') {
   synth.setWave(waveSelect.value);
 }
 synth.setVolume(parseFloat(volumeSlider.value || '1'));
+
+if (noteNamesChk){
+  noteNamesChk.addEventListener('change', () => {
+    const show = noteNamesChk.checked;
+    piano.setShowLabels(show);
+    localStorage.setItem('showNoteLabels', String(show));
+  });
+}
 
 // Configurações de mapeamento de teclas (nota -> tecla)
 const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -163,11 +174,10 @@ function chooseTarget(){
 function showTarget(){
   if (Array.isArray(current)){
     staff.drawChord(current);
-    setFeedback('Alvo DUO: ' + current.map(toDisplayName).join(' + '));
   } else {
     staff.drawNote(current);
-    setFeedback('Alvo: ' + toDisplayName(current));
   }
+  setFeedback('');
 }
 
 function newNote(){
