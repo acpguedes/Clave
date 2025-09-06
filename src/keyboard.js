@@ -2,10 +2,11 @@
 import { normalizeName, toDisplayName } from './notes.js';
 
 export class Piano {
-  constructor(container, {onPress} = {}){
+  constructor(container, {onPress, showLabels = true} = {}){
     this.root = container;
     this.onPress = onPress || (()=>{});
     this.keys = {};
+    this.showLabels = showLabels;
     this.layout = this.layout.bind(this);
     this.layout();
   }
@@ -35,11 +36,14 @@ export class Piano {
         white.style.width = whiteW + 'px';
         white.style.height = whiteH + 'px';
         white.dataset.note = canonical;
-        white.textContent = toDisplayName(canonical); // label visível
+        const wLabel = toDisplayName(canonical);
+        white.dataset.label = wLabel;
+        white.textContent = this.showLabels ? wLabel : '';
 
         // A11y
         white.setAttribute('role', 'button');
         white.setAttribute('aria-pressed', 'false');
+        white.setAttribute('aria-label', wLabel);
         white.tabIndex = 0;
 
         // Pointer + Keyboard Events
@@ -65,10 +69,13 @@ export class Piano {
           black.style.width = blackW + 'px';
           black.style.height = blackH + 'px';
           black.dataset.note = bn;
-          black.textContent = toDisplayName(bn);
+          const bLabel = toDisplayName(bn);
+          black.dataset.label = bLabel;
+          black.textContent = this.showLabels ? bLabel : '';
 
           black.setAttribute('role', 'button');
           black.setAttribute('aria-pressed', 'false');
+          black.setAttribute('aria-label', bLabel);
           black.tabIndex = 0;
 
           black.addEventListener('pointerdown', ()=> this.press(bn));
@@ -102,5 +109,12 @@ export class Piano {
     if(!el) return;
     el.classList.remove('active');
     el.setAttribute('aria-pressed', 'false');
+  }
+
+  setShowLabels(show){
+    this.showLabels = show;
+    for (const el of Object.values(this.keys)){
+      el.textContent = show ? el.dataset.label : '';
+    }
   }
 }
