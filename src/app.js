@@ -2,6 +2,7 @@ import { randomNote, randomChord, nameToFreq, normalizeName, toDisplayName, setO
 import { Staff } from './staff.js';
 import { Piano } from './keyboard.js';
 import { Synth } from './audio.js';
+import { start as startScheduler, stop as stopScheduler } from './metronome.js';
 
 const staffCanvas  = document.getElementById('staffCanvas');
 const scoreEl      = document.getElementById('score');
@@ -37,10 +38,7 @@ let bpm = 80;
 let subdiv = 1;       // 1 = semínima, 2 = colcheia
 let beatsBar = 4;     // 2/3/4
 let windowMs = 120;
-let tickTimer = null;
 let lastMainBeatTime = 0; // timestamp ms
-let currentBeatIndex = 0; // 0..(beatsBar-1)
-let subIndex = 0;         // 0..(subdiv-1)
 let beatHit = false;      // marcou ponto no último beat?
 
 // Accuracy chart data
@@ -179,41 +177,34 @@ function handlePress(noteName){
 // -------- Metronome with subdivisions and accents --------
 function startMetronome(){
   stopMetronome();
-  const baseInterval = 60000 / bpm; // ms per beat
-  const subInterval = baseInterval / subdiv;
   lastMainBeatTime = performance.now();
-  currentBeatIndex = 0;
-  subIndex = 0;
   beatHit = false;
 
   // initial beat (accented)
   showBeat(true);
   newNote();
 
-  tickTimer = setInterval(()=>{
-    subIndex = (subIndex + 1) % subdiv;
-    if (subIndex === 0){
-      // new main beat
+  startScheduler({
+    bpm,
+    subdiv,
+    beatsPerBar: beatsBar,
+    onBeat: (accent)=>{
       if (!beatHit){
         setFeedback('⛔ Perdeu o beat. Nova nota!', 'err');
       }
       beatHit = false;
-      currentBeatIndex = (currentBeatIndex + 1) % beatsBar;
       lastMainBeatTime = performance.now();
-      showBeat(currentBeatIndex === 0); // accented on beat 1
+      showBeat(accent);
       newNote();
-    } else {
-      // subdivision pulse
+    },
+    onSubdivision: ()=>{
       showSubdivision();
     }
-  }, subInterval);
+  });
 }
 
 function stopMetronome(){
-  if (tickTimer){
-    clearInterval(tickTimer);
-    tickTimer = null;
-  }
+  stopScheduler();
 }
 
 function showBeat(accent=false){
