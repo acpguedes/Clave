@@ -11,6 +11,8 @@ const scoreEl      = document.getElementById('score');
 const feedbackEl   = document.getElementById('feedback');
 const newBtn       = document.getElementById('newBtn');
 const muteBtn      = document.getElementById('muteBtn');
+const waveSelect   = document.getElementById('waveSelect');
+const volumeSlider = document.getElementById('volumeSlider');
 const levelSelect  = document.getElementById('levelSelect');
 const octaveMode   = document.getElementById('octaveMode');
 const keyboardRoot = document.getElementById('keyboard');
@@ -44,6 +46,8 @@ themeToggle.addEventListener('click', ()=>{
 const staff  = new Staff(staffCanvas);
 const piano  = new Piano(keyboardRoot, { onPress: handlePress });
 const synth  = new Synth();
+synth.setWave(waveSelect.value);
+synth.setVolume(parseFloat(volumeSlider.value || '1'));
 
 let score = 0;
 let current = null; // alvo: string (nota) ou array de 2 notas (DUO)
@@ -256,6 +260,8 @@ initEvents({
     windowInput,
     qwertyOctEl,
     resetChartBtn,
+    waveSelect,
+    volumeSlider,
     document
   },
   piano,
