@@ -25,6 +25,7 @@ export class Staff {
     this.bg.width = this.cv.width; this.bg.height = this.cv.height;
     this.bgctx = this.bg.getContext('2d');
     this.drawStaff(this.bgctx);
+    this.ctx.drawImage(this.bg, 0, 0);
   }
 
   clear(){ this.ctx.clearRect(0, 0, this.cv.width, this.cv.height); }
