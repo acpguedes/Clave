@@ -6,6 +6,8 @@ export class Piano {
     this.root = container;
     this.onPress = onPress || (()=>{});
     this.keys = {};
+    this.layout = this.layout.bind(this);
+    window.addEventListener('resize', this.layout);
     this.layout();
   }
 
@@ -15,6 +17,15 @@ export class Piano {
     const hasSharp = { C:true, D:true, E:false, F:true, G:true, A:true, B:false };
 
     const startOct = 1; // interno (científico)
+    const totalWhites = whites.length * (4 - startOct + 1);
+    const cw = this.root.clientWidth;
+    const whiteW = cw / totalWhites;
+    const blackW = whiteW * 2/3;
+    const whiteH = whiteW * (220/42);
+    const gapTop = whiteW * (20/42);
+    const blackH = whiteH * (120/220);
+    this.root.style.height = (whiteH + gapTop) + 'px';
+
     let x = 0;
     for (let oct = startOct; oct <= 4; oct++){
       for (const w of whites){
@@ -22,6 +33,8 @@ export class Piano {
         const white = document.createElement('div');
         white.className = 'white';
         white.style.left = x + 'px';
+        white.style.width = whiteW + 'px';
+        white.style.height = whiteH + 'px';
         white.dataset.note = canonical;
         white.textContent = toDisplayName(canonical); // label visível
 
@@ -49,7 +62,9 @@ export class Piano {
           const bn = `${w}#${oct}`;
           const black = document.createElement('div');
           black.className = 'black';
-          black.style.left = (x+28) + 'px';
+          black.style.left = (x + whiteW - blackW/2) + 'px';
+          black.style.width = blackW + 'px';
+          black.style.height = blackH + 'px';
           black.dataset.note = bn;
           black.textContent = toDisplayName(bn);
 
@@ -71,7 +86,7 @@ export class Piano {
           this.root.appendChild(black);
           this.keys[bn] = black;
         }
-        x += 44;
+        x += whiteW;
       }
     }
   }
