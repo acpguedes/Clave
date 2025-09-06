@@ -51,7 +51,13 @@ export function initEvents(ctx) {
   });
 
   waveSelect.addEventListener('change', () => {
-    synth.setWave(waveSelect.value);
+    const val = waveSelect.value;
+    if (val === 'sample') {
+      synth.setVoice('sample');
+    } else {
+      synth.setVoice('osc');
+      synth.setWave(val);
+    }
   });
 
   volumeSlider.addEventListener('input', () => {

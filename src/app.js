@@ -46,7 +46,13 @@ themeToggle.addEventListener('click', ()=>{
 const staff  = new Staff(staffCanvas);
 const piano  = new Piano(keyboardRoot, { onPress: handlePress });
 const synth  = new Synth();
-synth.setWave(waveSelect.value);
+// Exemplo de uso de amostra (coloque arquivos em public/samples)
+// synth.loadSample('samples/piano-A4.wav', 440);
+if (waveSelect.value === 'sample') {
+  synth.setVoice('sample');
+} else {
+  synth.setWave(waveSelect.value);
+}
 synth.setVolume(parseFloat(volumeSlider.value || '1'));
 
 let score = 0;
