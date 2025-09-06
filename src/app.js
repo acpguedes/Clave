@@ -26,6 +26,20 @@ const qwertyOctEl  = document.getElementById('qwertyOct');
 const resetChartBtn= document.getElementById('resetChartBtn');
 const chartCanvas  = document.getElementById('accuracyChart');
 const chartCtx     = chartCanvas.getContext('2d');
+const themeToggle  = document.getElementById('themeToggle');
+
+function applyTheme(theme){
+  document.body.dataset.theme = theme;
+  themeToggle.setAttribute('aria-pressed', theme === 'dark');
+  themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+applyTheme(localStorage.getItem('theme') || 'light');
+themeToggle.addEventListener('click', ()=>{
+  const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  localStorage.setItem('theme', next);
+});
 
 const staff  = new Staff(staffCanvas);
 const piano  = new Piano(keyboardRoot, { onPress: handlePress });
