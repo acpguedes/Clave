@@ -109,11 +109,25 @@ game-partitura/
 
 ---
 
+### Exemplo: trocar o tema
+
+1. Abra [src/styles.css](src/styles.css).
+2. No topo, personalize as variáveis CSS (`--bg`, `--fg`, etc.).
+3. Recarregue a página para ver o novo esquema de cores.
+
+![Tema padrão](public/screenshots/theme-before.svg)
+![Tema escuro](public/screenshots/theme-after.svg)
+
+---
+
 ## 🎧 Áudio amostrado
 
 1. Coloque arquivos `.wav` ou `.mp3` em `public/samples/` (crie a pasta se necessário).
-2. No código, carregue a amostra: `synth.loadSample('samples/seu-arquivo.wav', 440);` — o segundo parâmetro indica a frequência base da gravação.
+2. No código, em [src/audio.js](src/audio.js), carregue a amostra: `synth.loadSample('samples/seu-arquivo.wav', 440);` — o segundo parâmetro indica a frequência base da gravação.
 3. Na interface, escolha **Amostra** na lista de ondas para tocar usando o áudio carregado.
+
+![Beep padrão](public/screenshots/audio-before.svg)
+![Tocando amostra](public/screenshots/audio-after.svg)
 
 Cada nota tocará a partir da amostra ajustando `playbackRate` conforme a frequência solicitada.
 
