@@ -6,24 +6,50 @@ export class Staff {
   constructor(canvas){
     this.cv = canvas;
     this.ctx = canvas.getContext('2d');
-    this.padding = { left: 64, right: 24, top: 32, bottom: 32 };
-    this.spacing = 16; // distância entre as LINHAS do pentagrama
-    this.noteHeadRx = 9;
-    this.noteHeadRy = 6;
 
     this.topRefIdx    = diatonicIndex('F4');
     this.bottomRefIdx = diatonicIndex('E3');
-
-    this.stemHeight = 38;
-    this.stemOffset = 8;
-    this.noteX = this.padding.left + 56;
-
     this.stemUpThresholdIdx = diatonicIndex('B3');
 
-    // offscreen cache
     this.bg = document.createElement('canvas');
-    this.bg.width = this.cv.width; this.bg.height = this.cv.height;
     this.bgctx = this.bg.getContext('2d');
+
+    this.baseHeight = 520;
+    this.base = {
+      padding: { left:64, right:24, top:32, bottom:32 },
+      spacing:16,
+      noteHeadRx:9,
+      noteHeadRy:6,
+      stemHeight:38,
+      stemOffset:8,
+      noteXOffset:56
+    };
+
+    this.resize(canvas.width, canvas.height);
+  }
+
+  resize(w, h){
+    this.cv.width = w;
+    this.cv.height = h;
+    this.bg.width = w;
+    this.bg.height = h;
+    this.ctx = this.cv.getContext('2d');
+    this.bgctx = this.bg.getContext('2d');
+
+    const scale = h / this.baseHeight;
+    this.padding = {
+      left: this.base.padding.left * scale,
+      right: this.base.padding.right * scale,
+      top: this.base.padding.top * scale,
+      bottom: this.base.padding.bottom * scale,
+    };
+    this.spacing = this.base.spacing * scale;
+    this.noteHeadRx = this.base.noteHeadRx * scale;
+    this.noteHeadRy = this.base.noteHeadRy * scale;
+    this.stemHeight = this.base.stemHeight * scale;
+    this.stemOffset = this.base.stemOffset * scale;
+    this.noteX = this.padding.left + this.base.noteXOffset * scale;
+
     this.drawStaff(this.bgctx);
     this.ctx.drawImage(this.bg, 0, 0);
   }

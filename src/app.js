@@ -114,6 +114,25 @@ const state = {
 const accData = []; // array de offsets (ms), positivo = atraso, negativo = adiantado
 const MAX_POINTS = 80;
 
+function resizeLayout(){
+  // recalcula tamanhos de teclas e canvases
+  piano.layout();
+
+  const main = document.querySelector('.main-content');
+  const keyboardPanel = document.querySelector('.keyboard-panel');
+  const hud = document.querySelector('.hud');
+  const width = staffCanvas.parentElement.clientWidth;
+  const remaining = main.clientHeight - keyboardPanel.offsetHeight - hud.offsetHeight - chartCanvas.offsetHeight;
+  const height = Math.max(0, remaining);
+
+  chartCanvas.width = width;
+  staff.resize(width, height);
+  drawChart(chartCtx, chartCanvas, accData);
+  if(current) showTarget();
+}
+
+window.addEventListener('resize', resizeLayout);
+
 // Tecla física -> nota (dinâmico com baseOct). Shift = oitava acima.
 function keyToNote(e){
   const key = e.key.toLowerCase();
@@ -321,5 +340,5 @@ initEvents({
 });
 
 // init
-drawChart(chartCtx, chartCanvas, accData);
+resizeLayout();
 newNote();

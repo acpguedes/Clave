@@ -67,6 +67,7 @@ body{
   flex:1;
   display:flex;
   flex-direction:column;
+  height:100%;
 }
 
 .controls-panel{
@@ -92,6 +93,12 @@ body{
   align-items:center;
   gap:8px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  flex:1;
+}
+
+.staff-panel canvas{
+  width:100%;
+  height:auto;
 }
 
 .hud{
@@ -164,8 +171,7 @@ body{
   margin: 0 auto;
   width: 100%;
   max-width: 95vw;
-  height: 18vw;
-  max-height: 40vh;
+  height: 100%;
   user-select:none;
 }
 
@@ -217,7 +223,7 @@ body{
 #accuracyChart{
   width: 100%;
   max-width: 760px;
-  height: 160px;
+  height: auto;
   border:1px solid var(--border);
   border-radius: 10px;
   background: #fff;
