@@ -7,7 +7,6 @@ export class Piano {
     this.onPress = onPress || (()=>{});
     this.keys = {};
     this.layout = this.layout.bind(this);
-    window.addEventListener('resize', this.layout);
     this.layout();
   }
 
