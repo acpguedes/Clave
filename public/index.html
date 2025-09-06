@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Treino de Partitura</title>
+  <link rel="stylesheet" href="../src/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo" aria-hidden="true">🎵</div>
+    <h1>Treino de Partitura</h1>
+  </header>
+
+  <main class="container">
+    <section class="staff-panel">
+      <canvas id="staffCanvas" width="760" height="520" aria-label="Pentagrama com nota"></canvas>
+
+      <div class="hud">
+        <div class="left">
+          <div id="score" class="score" aria-live="polite">Pontos: 0</div>
+          <div id="feedback" class="feedback" aria-live="polite"></div>
+          <div class="beat">
+            <span>Beat:</span>
+            <div id="beatLamp" class="lamp" aria-hidden="true"></div>
+            <div id="subLamp" class="lamp sm" aria-hidden="true" title="Subdivisão"></div>
+          </div>
+        </div>
+        <div class="controls">
+          <label for="levelSelect">Nível:</label>
+          <select id="levelSelect" aria-label="Selecionar nível">
+            <option value="easy" selected>F3–E4 (básico)</option>
+            <option value="full">C1–B4 (com ♯)</option>
+            <option value="duo_easy">DUO F3–E4 (duas notas)</option>
+            <option value="duo_full">DUO C1–B4 (duas notas)</option>
+          </select>
+
+          <label for="octaveMode">Oitava (rótulos):</label>
+          <select id="octaveMode" aria-label="Padrão de oitava">
+            <option value="sci" selected>Científico (C4)</option>
+            <option value="daw">DAW/Yamaha (C3)</option>
+          </select>
+
+          <button id="newBtn" class="btn" aria-label="Sortear nova nota">Nova nota</button>
+          <button id="muteBtn" class="btn" aria-pressed="false" aria-label="Alternar som">🔈 Som: on</button>
+        </div>
+      </div>
+
+      <div class="rhythm-controls">
+        <label><input type="checkbox" id="rhythmMode"> Modo ritmo</label>
+        <label for="bpmInput">BPM:</label>
+        <input id="bpmInput" type="number" min="20" max="240" value="80" />
+        <label for="subdivSelect">Subdivisão:</label>
+        <select id="subdivSelect">
+          <option value="1" selected>Semínimas (♩)</option>
+          <option value="2">Colcheias (♪)</option>
+        </select>
+        <label for="beatsPerBar">Compassos:</label>
+        <select id="beatsPerBar">
+          <option value="2">2/4</option>
+          <option value="3">3/4</option>
+          <option value="4" selected>4/4</option>
+        </select>
+        <label for="windowInput">Janela (ms):</label>
+        <input id="windowInput" type="number" min="20" max="500" value="120" />
+        <label><input type="checkbox" id="clickChk" checked> Clique</label>
+        <small class="hint">Teclado: Z..M = Cn..Bn (pretas S,D,G,H,J). Shift = oitava acima. ↑/↓ mudam oitava base; escolha abaixo.</small>
+      </div>
+
+      <div class="qwerty-controls">
+        <label for="qwertyOct">Oitava base QWERTY:</label>
+        <input id="qwertyOct" type="number" min="1" max="6" value="3" />
+        <button id="resetChartBtn" class="btn btn-small">Resetar gráfico</button>
+      </div>
+
+      <canvas id="accuracyChart" width="760" height="160" aria-label="Gráfico de acerto (ms)"></canvas>
+    </section>
+
+    <section class="keyboard-panel">
+      <div id="keyboard" class="keyboard" aria-label="Teclado de piano"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>Protótipo educativo – sem dependências externas. ©</small>
+  </footer>
+
+  <script type="module" src="../src/app.js"></script>
+</body>
+</html>
