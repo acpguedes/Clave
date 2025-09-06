@@ -33,6 +33,7 @@ const synth  = new Synth();
 
 let score = 0;
 let current = null; // alvo: string (nota) ou array de 2 notas (DUO)
+let target = null;  // nome normalizado do alvo simples
 
 const state = {
   rhythmEnabled: false,
@@ -99,6 +100,7 @@ function showTarget(){
 function newNote(){
   chordHits.clear();
   current = chooseTarget();
+  target = Array.isArray(current) ? null : normalizeName(current);
   showTarget();
 }
 
@@ -119,6 +121,7 @@ function handleCorrect(dtMs){
 let chordHits = new Set();
 
 function handlePress(noteName){
+  const pressed = normalizeName(noteName);
   synth.ensureRunning();
   const freq = nameToFreq(noteName);
   synth.beep(freq, 0.2);
@@ -126,7 +129,7 @@ function handlePress(noteName){
 
   if (!Array.isArray(current)){
     // nota simples
-    const isRight = normalizeName(noteName) === normalizeName(current);
+    const isRight = pressed === target;
     if (!state.rhythmEnabled){
       return isRight ? handleCorrect(0) : setFeedback('❌ Errado! Era ' + toDisplayName(current), 'err');
     } else {
@@ -145,12 +148,11 @@ function handlePress(noteName){
   } else {
     // DUO (duas notas)
     const targetSet = new Set(current.map(normalizeName));
-    const n = normalizeName(noteName);
-    if (!targetSet.has(n)){
+    if (!targetSet.has(pressed)){
       setFeedback('❌ Uma das notas está errada. Alvo: ' + current.map(toDisplayName).join(' + '), 'err');
       return;
     }
-    chordHits.add(n);
+    chordHits.add(pressed);
     const remaining = [...targetSet].filter(x => !chordHits.has(x));
     if (remaining.length === 0){
       chordHits.clear();
