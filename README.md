@@ -126,6 +126,16 @@ Recent versions of Chrome, Edge, and Firefox. iOS Safari works but may require a
 
 ---
 
+## 🧪 Tests
+
+Run all unit tests with:
+
+```bash
+npm test
+```
+
+---
+
 ## 🤝 Contributing
 
 PRs welcome! Please keep the code dependency‑free and easy to run. Suggestions and bug reports via Issues are appreciated.
