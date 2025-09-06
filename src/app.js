@@ -3,6 +3,8 @@ import { Staff } from './staff.js';
 import { Piano } from './keyboard.js';
 import { Synth } from './audio.js';
 import { start as startScheduler, stop as stopScheduler } from './metronome.js';
+import { drawChart } from './chart.js';
+import { initEvents } from './events.js';
 
 const staffCanvas  = document.getElementById('staffCanvas');
 const scoreEl      = document.getElementById('score');
@@ -32,21 +34,20 @@ const synth  = new Synth();
 let score = 0;
 let current = null; // alvo: string (nota) ou array de 2 notas (DUO)
 
-// Rhythm engine state
-let rhythmEnabled = false;
-let bpm = 80;
-let subdiv = 1;       // 1 = semínima, 2 = colcheia
-let beatsBar = 4;     // 2/3/4
-let windowMs = 120;
-let lastMainBeatTime = 0; // timestamp ms
-let beatHit = false;      // marcou ponto no último beat?
+const state = {
+  rhythmEnabled: false,
+  bpm: 80,
+  subdiv: 1,       // 1 = semínima, 2 = colcheia
+  beatsBar: 4,     // 2/3/4
+  windowMs: 120,
+  lastMainBeatTime: 0, // timestamp ms
+  beatHit: false,      // marcou ponto no último beat?
+  baseOct: 3
+};
 
 // Accuracy chart data
 const accData = []; // array de offsets (ms), positivo = atraso, negativo = adiantado
 const MAX_POINTS = 80;
-
-// QWERTY mapping base octave (para Z-row)
-let baseOct = 3;
 
 // Tecla física -> nota (dinâmico com baseOct). Shift = oitava acima.
 function keyToNote(e){
@@ -60,11 +61,11 @@ function keyToNote(e){
   if (key in mapWhites) semi = mapWhites[key];
   else if (key in mapBlacks) semi = mapBlacks[key];
   if (semi === null) return null;
-  const midi = (baseOct + shift + 1)*12 + semi; // Cn midi
+  const midi = (state.baseOct + shift + 1)*12 + semi; // Cn midi
   // convert back to name (C..B with sharps) — keep simple mapping
   const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   const letter = names[semi];
-  const name = letter + (baseOct + shift);
+  const name = letter + (state.baseOct + shift);
   return name;
 }
 
@@ -103,10 +104,10 @@ function newNote(){
 function handleCorrect(dtMs){
   score += 1;
   scoreEl.textContent = 'Pontos: ' + score;
-  if (rhythmEnabled){
+  if (state.rhythmEnabled){
     accData.push(Math.round(dtMs));
     if (accData.length > MAX_POINTS) accData.shift();
-    drawChart();
+    drawChart(chartCtx, chartCanvas, accData);
     setFeedback(`✔️ No tempo! ${Math.round(dtMs)} ms`, 'ok');
   } else {
     setFeedback('✔️ Correto!', 'ok');
@@ -125,14 +126,14 @@ function handlePress(noteName){
   if (!Array.isArray(current)){
     // nota simples
     const isRight = normalizeName(noteName) === normalizeName(current);
-    if (!rhythmEnabled){
+    if (!state.rhythmEnabled){
       return isRight ? handleCorrect(0) : setFeedback('❌ Errado! Era ' + toDisplayName(current), 'err');
     } else {
       const now = performance.now();
-      const dt = now - lastMainBeatTime; // atraso após o último beat
-      const within = Math.abs(dt) <= windowMs;
-      if (isRight && within && !beatHit){
-        beatHit = true;
+      const dt = now - state.lastMainBeatTime; // atraso após o último beat
+      const within = Math.abs(dt) <= state.windowMs;
+      if (isRight && within && !state.beatHit){
+        state.beatHit = true;
         return handleCorrect(dt);
       } else if (isRight && !within){
         return setFeedback(`⚠️ Fora do tempo (${Math.round(dt)} ms).`, 'err');
@@ -152,14 +153,14 @@ function handlePress(noteName){
     const remaining = [...targetSet].filter(x => !chordHits.has(x));
     if (remaining.length === 0){
       chordHits.clear();
-      if (!rhythmEnabled){
+      if (!state.rhythmEnabled){
         return handleCorrect(0);
       } else {
         const now = performance.now();
-        const dt = now - lastMainBeatTime;
-        const within = Math.abs(dt) <= windowMs;
-        if (within && !beatHit){
-          beatHit = true;
+        const dt = now - state.lastMainBeatTime;
+        const within = Math.abs(dt) <= state.windowMs;
+        if (within && !state.beatHit){
+          state.beatHit = true;
           return handleCorrect(dt);
         } else if (!within){
           return setFeedback(`⚠️ Fora do tempo (${Math.round(dt)} ms).`, 'err');
@@ -177,23 +178,23 @@ function handlePress(noteName){
 // -------- Metronome with subdivisions and accents --------
 function startMetronome(){
   stopMetronome();
-  lastMainBeatTime = performance.now();
-  beatHit = false;
+  state.lastMainBeatTime = performance.now();
+  state.beatHit = false;
 
   // initial beat (accented)
   showBeat(true);
   newNote();
 
   startScheduler({
-    bpm,
-    subdiv,
-    beatsPerBar: beatsBar,
+    bpm: state.bpm,
+    subdiv: state.subdiv,
+    beatsPerBar: state.beatsBar,
     onBeat: (accent)=>{
-      if (!beatHit){
+      if (!state.beatHit){
         setFeedback('⛔ Perdeu o beat. Nova nota!', 'err');
       }
-      beatHit = false;
-      lastMainBeatTime = performance.now();
+      state.beatHit = false;
+      state.lastMainBeatTime = performance.now();
       showBeat(accent);
       newNote();
     },
@@ -223,165 +224,43 @@ function showSubdivision(){
   }
 }
 
-// -------- Chart drawing --------
-function drawChart(){
-  const ctx = chartCtx;
-  const W = chartCanvas.width;
-  const H = chartCanvas.height;
-  ctx.clearRect(0,0,W,H);
-  // axes
-  ctx.strokeStyle = '#e6e8ef';
-  ctx.beginPath();
-  ctx.moveTo(30, H/2); ctx.lineTo(W-5, H/2); // zero line
-  ctx.moveTo(30, 5); ctx.lineTo(30, H-5);
-  ctx.stroke();
-
-  // labels
-  ctx.fillStyle = '#616161';
-  ctx.font = '12px system-ui';
-  ctx.fillText('+ms', 5, 14);
-  ctx.fillText('-ms', 5, H-6);
-
-  // data
-  if (accData.length === 0) return;
-  const maxAbs = Math.max(60, ...accData.map(v => Math.abs(v)));
-  const scaleY = (H/2 - 10) / maxAbs;
-  const left = 36;
-  const right = W - 8;
-  const span = right - left;
-  const step = accData.length > 1 ? (span / (accData.length-1)) : 0;
-
-  // zero line is already drawn; draw points and a simple polyline
-  ctx.strokeStyle = '#6b6ff7';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  accData.forEach((v,i)=>{
-    const x = left + i*step;
-    const y = H/2 - v*scaleY;
-    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  });
-  ctx.stroke();
-
-  ctx.fillStyle = '#111';
-  accData.forEach((v,i)=>{
-    const x = left + i*step;
-    const y = H/2 - v*scaleY;
-    ctx.beginPath();
-    ctx.arc(x,y,2.5,0,Math.PI*2);
-    ctx.fill();
-  });
-}
-
-// -------- UI events --------
-newBtn.addEventListener('click', ()=>{
-  if (!rhythmEnabled){
-    newNote();
-    setFeedback('');
-  }
-});
-muteBtn.addEventListener('click', ()=>{
-  const now = synth.muted;
-  synth.setMuted(!now);
-  muteBtn.textContent = now ? '🔈 Som: on' : '🔇 Som: off';
-  muteBtn.setAttribute('aria-pressed', String(!now));
-});
-levelSelect.addEventListener('change', ()=>{
-  chordHits.clear();
-  if (!rhythmEnabled) newNote();
-  else setFeedback('Modo ritmo ativo — nova seleção aplicada no próximo beat.');
-});
-octaveMode.addEventListener('change', ()=>{
-  const mode = octaveMode.value; // 'sci' or 'daw'
-  setOctaveShift(mode === 'daw' ? -1 : 0);
-  // relabel keyboard
-  piano.layout();
-  // atualizar feedback da nota alvo (mantém mesma nota interna)
-  if (current){
-    showTarget();
-  }
-});
-
-rhythmModeEl.addEventListener('change', ()=>{
-  rhythmEnabled = rhythmModeEl.checked;
-  if (rhythmEnabled){
-    setFeedback('Modo ritmo ativo. Acerte a(s) nota(s) no beat!');
-    bpm = clamp(parseInt(bpmInput.value||'80',10), 20, 240);
-    subdiv = clamp(parseInt(subdivSelect.value||'1',10), 1, 4);
-    beatsBar = clamp(parseInt(beatsPerBar.value||'4',10), 2, 4);
-    windowMs = clamp(parseInt(windowInput.value||'120',10), 20, 500);
-    startMetronome();
-  } else {
-    stopMetronome();
-    setFeedback('Modo ritmo desativado.');
-    newNote();
-  }
-});
-bpmInput.addEventListener('change', ()=>{
-  bpm = clamp(parseInt(bpmInput.value||'80',10), 20, 240);
-  if (rhythmEnabled) startMetronome();
-});
-subdivSelect.addEventListener('change', ()=>{
-  subdiv = clamp(parseInt(subdivSelect.value||'1',10), 1, 4);
-  if (rhythmEnabled) startMetronome();
-});
-beatsPerBar.addEventListener('change', ()=>{
-  beatsBar = clamp(parseInt(beatsPerBar.value||'4',10), 2, 4);
-  if (rhythmEnabled) startMetronome();
-});
-windowInput.addEventListener('change', ()=>{
-  windowMs = clamp(parseInt(windowInput.value||'120',10), 20, 500);
-});
-
-qwertyOctEl.addEventListener('change', ()=>{
-  baseOct = clamp(parseInt(qwertyOctEl.value||'3',10), 1, 6);
-  qwertyOctEl.value = String(baseOct);
-  // hint update
-  setFeedback(`QWERTY base = C${baseOct}`);
-});
-
-resetChartBtn.addEventListener('click', ()=>{
-  accData.length = 0;
-  drawChart();
-});
-
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
-// -------- Physical keyboard handlers --------
-document.addEventListener('keydown', (e)=>{
-  if (e.repeat) return;
-  const key = e.key.toLowerCase();
-
-  // transpose octave with arrows
-  if (key === 'arrowup'){
-    baseOct = clamp(baseOct + 1, 1, 6);
-    qwertyOctEl.value = String(baseOct);
-    setFeedback(`QWERTY base = C${baseOct}`);
-    e.preventDefault();
-    return;
-  }
-  if (key === 'arrowdown'){
-    baseOct = clamp(baseOct - 1, 1, 6);
-    qwertyOctEl.value = String(baseOct);
-    setFeedback(`QWERTY base = C${baseOct}`);
-    e.preventDefault();
-    return;
-  }
-
-  const name = keyToNote(e);
-  if (!name) return;
-  if (pressedKeys.has(key + (e.shiftKey?'+shift':''))) return;
-  pressedKeys.add(key + (e.shiftKey?'+shift':''));
-  piano.press(name);
-});
-document.addEventListener('keyup', (e)=>{
-  const key = e.key.toLowerCase();
-  const name = keyToNote(e);
-  const token = key + (e.shiftKey?'+shift':'');
-  if (!pressedKeys.has(token)) return;
-  pressedKeys.delete(token);
-  if (name) piano.release(name);
+initEvents({
+  elements: {
+    newBtn,
+    muteBtn,
+    levelSelect,
+    octaveMode,
+    rhythmModeEl,
+    bpmInput,
+    subdivSelect,
+    beatsPerBar,
+    windowInput,
+    qwertyOctEl,
+    resetChartBtn,
+    document
+  },
+  piano,
+  synth,
+  state,
+  accData,
+  chartCanvas,
+  chartCtx,
+  drawChart,
+  chordHits,
+  pressedKeys,
+  keyToNote,
+  showTarget,
+  newNote,
+  setFeedback,
+  setOctaveShift,
+  startMetronome,
+  stopMetronome,
+  clamp,
+  getCurrent: () => current
 });
 
 // init
-drawChart();
+drawChart(chartCtx, chartCanvas, accData);
 newNote();
