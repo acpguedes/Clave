@@ -56,6 +56,27 @@ if (waveSelect.value === 'sample') {
 }
 synth.setVolume(parseFloat(volumeSlider.value || '1'));
 
+// Configurações de mapeamento de teclas (nota -> tecla)
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const defaultKeyMap = {
+  C:'z', 'C#':'s', D:'x', 'D#':'d', E:'c', F:'v', 'F#':'g',
+  G:'b', 'G#':'h', A:'n', 'A#':'j', B:'m'
+};
+const savedMap = (typeof localStorage !== 'undefined'
+  && JSON.parse(localStorage.getItem('keyMap') || '{}')) || {};
+const keyMapConfig = {...defaultKeyMap, ...savedMap};
+let keyToNoteMap = {};
+function rebuildKeyMap(){
+  keyToNoteMap = {};
+  for (const [note, key] of Object.entries(keyMapConfig)){
+    if (key) keyToNoteMap[key.toLowerCase()] = note;
+  }
+  if (typeof localStorage !== 'undefined'){
+    localStorage.setItem('keyMap', JSON.stringify(keyMapConfig));
+  }
+}
+rebuildKeyMap();
+
 // UI para reconfigurar teclas
 if (keyMapForm){
   NOTE_NAMES.forEach(n => {
@@ -92,27 +113,6 @@ const state = {
 // Accuracy chart data
 const accData = []; // array de offsets (ms), positivo = atraso, negativo = adiantado
 const MAX_POINTS = 80;
-
-// Configurações de mapeamento de teclas (nota -> tecla)
-const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const defaultKeyMap = {
-  C:'z', 'C#':'s', D:'x', 'D#':'d', E:'c', F:'v', 'F#':'g',
-  G:'b', 'G#':'h', A:'n', 'A#':'j', B:'m'
-};
-const savedMap = (typeof localStorage !== 'undefined'
-  && JSON.parse(localStorage.getItem('keyMap') || '{}')) || {};
-const keyMapConfig = {...defaultKeyMap, ...savedMap};
-let keyToNoteMap = {};
-function rebuildKeyMap(){
-  keyToNoteMap = {};
-  for (const [note, key] of Object.entries(keyMapConfig)){
-    if (key) keyToNoteMap[key.toLowerCase()] = note;
-  }
-  if (typeof localStorage !== 'undefined'){
-    localStorage.setItem('keyMap', JSON.stringify(keyMapConfig));
-  }
-}
-rebuildKeyMap();
 
 // Tecla física -> nota (dinâmico com baseOct). Shift = oitava acima.
 function keyToNote(e){
