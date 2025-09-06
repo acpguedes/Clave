@@ -48,10 +48,32 @@ body{
 .topbar h1{ margin:0; font-size:20px; font-weight:700; letter-spacing:0.2px; }
 .topbar .theme-toggle{ margin-left:auto; }
 
-.container{
+.layout{
   max-width: 1400px;
   margin: 16px auto;
   padding: 0 16px 24px;
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+}
+
+.main-content{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.controls-panel{
+  width:280px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
 
 .staff-panel{
@@ -109,7 +131,6 @@ body{
   gap:8px;
   flex-wrap:wrap;
   color: var(--muted);
-  margin-top:8px;
 }
 .rhythm-controls .hint{ margin-left:auto; font-size:12px; }
 
@@ -125,7 +146,6 @@ body{
 }
 
 .keyboard-panel{
-  margin-top:16px;
   background:var(--card);
   border:1px solid var(--border);
   border-radius:16px;
