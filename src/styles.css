@@ -126,16 +126,15 @@ body{
   position:relative;
   margin: 0 auto;
   width: 100%;
-  max-width: 1300px;
-  height: 240px;
+  max-width: 95vw;
+  height: 18vw;
+  max-height: 40vh;
   user-select:none;
 }
 
 .white{
   position:absolute;
   bottom:0;
-  width:42px;
-  height:220px;
   background:#fff;
   border:1px solid #222;
   border-bottom-left-radius:6px;
@@ -153,9 +152,7 @@ body{
 
 .black{
   position:absolute;
-  bottom:120px;
-  width:28px;
-  height:120px;
+  top:0;
   background:#111;
   color:#fff;
   border:1px solid #000;
