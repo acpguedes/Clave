@@ -12,6 +12,8 @@ export function initEvents(ctx) {
       windowInput,
       qwertyOctEl,
       resetChartBtn,
+      waveSelect,
+      volumeSlider,
       document
     },
     piano,
@@ -46,6 +48,14 @@ export function initEvents(ctx) {
     synth.setMuted(!now);
     muteBtn.textContent = now ? '🔈 Som: on' : '🔇 Som: off';
     muteBtn.setAttribute('aria-pressed', String(!now));
+  });
+
+  waveSelect.addEventListener('change', () => {
+    synth.setWave(waveSelect.value);
+  });
+
+  volumeSlider.addEventListener('input', () => {
+    synth.setVolume(parseFloat(volumeSlider.value || '1'));
   });
 
   levelSelect.addEventListener('change', () => {
