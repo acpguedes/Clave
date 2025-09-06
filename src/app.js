@@ -97,6 +97,7 @@ function showTarget(){
 }
 
 function newNote(){
+  chordHits.clear();
   current = chooseTarget();
   showTarget();
 }
