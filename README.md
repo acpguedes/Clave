@@ -109,6 +109,16 @@ game-partitura/
 
 ---
 
+## 🎧 Áudio amostrado
+
+1. Coloque arquivos `.wav` ou `.mp3` em `public/samples/` (crie a pasta se necessário).
+2. No código, carregue a amostra: `synth.loadSample('samples/seu-arquivo.wav', 440);` — o segundo parâmetro indica a frequência base da gravação.
+3. Na interface, escolha **Amostra** na lista de ondas para tocar usando o áudio carregado.
+
+Cada nota tocará a partir da amostra ajustando `playbackRate` conforme a frequência solicitada.
+
+---
+
 ## 🔧 Browser Support
 
 Recent versions of Chrome, Edge, and Firefox. iOS Safari works but may require an explicit tap to unlock audio. Ensure you serve over **http://** (localhost) rather than opening files directly.
