@@ -29,6 +29,7 @@ const resetChartBtn= document.getElementById('resetChartBtn');
 const chartCanvas  = document.getElementById('accuracyChart');
 const chartCtx     = chartCanvas.getContext('2d');
 const themeToggle  = document.getElementById('themeToggle');
+const keyMapForm   = document.getElementById('keyMapForm');
 
 function applyTheme(theme){
   document.body.dataset.theme = theme;
@@ -55,6 +56,24 @@ if (waveSelect.value === 'sample') {
 }
 synth.setVolume(parseFloat(volumeSlider.value || '1'));
 
+// UI para reconfigurar teclas
+if (keyMapForm){
+  NOTE_NAMES.forEach(n => {
+    const label = document.createElement('label');
+    label.textContent = n + ':';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = 1;
+    input.value = keyMapConfig[n] || '';
+    input.addEventListener('input', (e)=>{
+      keyMapConfig[n] = e.target.value.toLowerCase();
+      rebuildKeyMap();
+    });
+    label.appendChild(input);
+    keyMapForm.appendChild(label);
+  });
+}
+
 let score = 0;
 let current = null; // alvo: string (nota) ou array de 2 notas (DUO)
 let target = null;  // nome normalizado do alvo simples
@@ -74,22 +93,33 @@ const state = {
 const accData = []; // array de offsets (ms), positivo = atraso, negativo = adiantado
 const MAX_POINTS = 80;
 
+// Configurações de mapeamento de teclas (nota -> tecla)
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const defaultKeyMap = {
+  C:'z', 'C#':'s', D:'x', 'D#':'d', E:'c', F:'v', 'F#':'g',
+  G:'b', 'G#':'h', A:'n', 'A#':'j', B:'m'
+};
+const savedMap = (typeof localStorage !== 'undefined'
+  && JSON.parse(localStorage.getItem('keyMap') || '{}')) || {};
+const keyMapConfig = {...defaultKeyMap, ...savedMap};
+let keyToNoteMap = {};
+function rebuildKeyMap(){
+  keyToNoteMap = {};
+  for (const [note, key] of Object.entries(keyMapConfig)){
+    if (key) keyToNoteMap[key.toLowerCase()] = note;
+  }
+  if (typeof localStorage !== 'undefined'){
+    localStorage.setItem('keyMap', JSON.stringify(keyMapConfig));
+  }
+}
+rebuildKeyMap();
+
 // Tecla física -> nota (dinâmico com baseOct). Shift = oitava acima.
 function keyToNote(e){
   const key = e.key.toLowerCase();
   const shift = e.shiftKey ? 1 : 0;
-  // Z-row whites
-  const mapWhites = { z:0, x:2, c:4, v:5, b:7, n:9, m:11 };
-  // Z-row blacks
-  const mapBlacks = { s:1, d:3, g:6, h:8, j:10 };
-  let semi = null;
-  if (key in mapWhites) semi = mapWhites[key];
-  else if (key in mapBlacks) semi = mapBlacks[key];
-  if (semi === null) return null;
-  const midi = (state.baseOct + shift + 1)*12 + semi; // Cn midi
-  // convert back to name (C..B with sharps) — keep simple mapping
-  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-  const letter = names[semi];
+  const letter = keyToNoteMap[key];
+  if (!letter) return null;
   const name = letter + (state.baseOct + shift);
   return name;
 }

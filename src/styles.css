@@ -113,6 +113,17 @@ body{
 }
 .rhythm-controls .hint{ margin-left:auto; font-size:12px; }
 
+.keymap-form label{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  margin-right:4px;
+}
+.keymap-form input{
+  width:1.5rem;
+  text-align:center;
+}
+
 .keyboard-panel{
   margin-top:16px;
   background:var(--card);
